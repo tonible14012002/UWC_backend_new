@@ -5,6 +5,6 @@ from . import views
 
 urlpatterns = [
     path('auth/', views.login),
-    path('', views.home),
     path('auth/refresh/', views.refresh),
+    path('', views.home),
 ]

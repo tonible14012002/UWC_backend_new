@@ -14,9 +14,6 @@ from datetime import timedelta
 import jwt
 from .token import auth_required
 
-
-
-
 @api_view(("POST",))
 def login(request):
     serializer = LoginSerializer(data=request.data)
@@ -84,10 +81,9 @@ def refresh(request):
             
     return Response(refresh_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(["GET"])
+@api_view(['GET'])
 @auth_required
 def home(request):
-    print(request.user)
-    return Response({"message":"success"})
-
-# Create your views here.
+    if request.method == 'GET':
+        pass
+    return Response({"message": ""})

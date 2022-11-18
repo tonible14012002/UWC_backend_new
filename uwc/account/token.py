@@ -9,8 +9,8 @@ JWT_ALGORITHM = 'HS256'
 JWT_EXP_DELTA_SECONDS = 20
 
 def auth_required(func):
+    
     def token_required_view(request, *args, **kwargs):
-
         bearer = request.headers.get("Authorization", None)
         if not bearer:
             return Response({
