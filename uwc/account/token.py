@@ -3,7 +3,10 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
 from mysql import connector as mysql_connector
 from django.conf import settings
-from .utils import user_db_convertor
+from .utils import (
+    user_db_convertor,
+    connect_db
+)
 
 JWT_SECRET = 'secret'
 JWT_ALGORITHM = 'HS256'
@@ -24,7 +27,7 @@ def auth_required(func):
                 and payload['type'] == 'access'):
                 
                 user_id = payload.get('user_id')
-                connection = mysql_connector.connect(**settings.DATABASE_CREDENTIALS)
+                connection = connect_db()
                 cursor = connection.cursor()
                 cursor.execute(
                     f"""

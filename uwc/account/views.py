@@ -3,13 +3,16 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import (
      LoginSerializer, 
-     RefreshSerializer
+     RefreshSerializer, 
+     EmployeeSerializer,
 )
 from django.conf import settings
 from mysql import connector as mysql_connector
 from .utils import (
+    connect_db,
     user_db_convertor, 
-    employee_db_convertor
+    employee_db_convertor,
+    create_object
     )
 from .token import JWT_SECRET, JWT_ALGORITHM
 from datetime import datetime
@@ -24,7 +27,7 @@ def login(request):
         credentials = serializer.data
         user=None
         try:
-            connection = mysql_connector.connect(**settings.DATABASE_CREDENTIALS)
+            connection = connect_db()
             cursor = connection.cursor()
             cursor.execute(
                 f"""
@@ -54,8 +57,8 @@ def login(request):
                 "refresh": refresh_token
             })
 
-        except (mysql_connector.Error, Exception) as e:
-            return Response({'message': e.msg}, status=status.HTTP_400_BAD_REQUEST)
+        except (mysql_connector.Error) as e:
+            return Response({'message': e.msg }, status=status.HTTP_400_BAD_REQUEST)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
@@ -100,9 +103,39 @@ def employee(request):
             connection.close()
         except mysql_connector.Error as e:
             return Response({"message": e.msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-        pass
-    return  Response({})
+        return Response(employees, status=status.HTTP_200_OK)
+    # POST method
+    serializer = EmployeeSerializer(data=request.data)
+    if serializer.is_valid():
+        employee_data = serializer.data
+        try:
+            connection = connect_db()
+            cursor = connection.cursor()
+            cursor.execute(
+                f"""
+                CALL InsertEmployee(NULL,
+                '{employee_data['username']}',
+                sha2('{employee_data['password']}',0),
+                '{employee_data['name']}',
+                {request.user['id']},
+                1,
+                SYSDATE(),
+                '{employee_data['address']}',
+                '{employee_data['birth']}',
+                '{employee_data['gender']}',
+                '{employee_data['phone']}',
+                '{employee_data['email']}',
+                NULL,
+                {int(employee_data['role'])},
+                {employee_data['salary']});
+                """
+            )
+            connection.commit()
+            connection.close()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except (mysql_connector.Error) as e:
+            return Response({"message": e.msg}, status=status.HTTP_400_BAD_REQUEST)
+    return  Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT'])
 def employee_detail(request, id):
