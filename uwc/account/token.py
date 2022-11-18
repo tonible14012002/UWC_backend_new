@@ -3,13 +3,13 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
 from mysql import connector as mysql_connector
 from django.conf import settings
+from .utils import user_db_convertor
 
 JWT_SECRET = 'secret'
 JWT_ALGORITHM = 'HS256'
 JWT_EXP_DELTA_SECONDS = 20
 
 def auth_required(func):
-    
     def token_required_view(request, *args, **kwargs):
         bearer = request.headers.get("Authorization", None)
         if not bearer:
@@ -31,7 +31,7 @@ def auth_required(func):
                     CALL GetBackOfficerUser ({user_id})
                     """
                 )
-                user = cursor.fetchall()
+                user =  user_db_convertor(cursor.fetchall()[0])
                 request.user = user
         except (mysql_connector.Error) as e:
             return Response({

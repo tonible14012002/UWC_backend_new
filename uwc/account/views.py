@@ -7,7 +7,10 @@ from .serializers import (
 )
 from django.conf import settings
 from mysql import connector as mysql_connector
-from .utils import user_db_convertor
+from .utils import (
+    user_db_convertor, 
+    employee_db_convertor
+    )
 from .token import JWT_SECRET, JWT_ALGORITHM
 from datetime import datetime
 from datetime import timedelta
@@ -35,12 +38,12 @@ def login(request):
             connection.close()
             
             token = jwt.encode({'user_id' : user["id"], 
-                                'exp' : datetime.utcnow() + timedelta(seconds=20),
+                                'exp' : datetime.utcnow() + timedelta(days=1),
                                 'type': 'access'},
                                 JWT_SECRET, 
                                 JWT_ALGORITHM)
             refresh_token = jwt.encode({'user_id' : user["id"], 
-                                        'exp' : datetime.utcnow() + timedelta(days=1),
+                                        'exp' : datetime.utcnow() + timedelta(days=2),
                                         'type': 'refresh'},
                                         JWT_SECRET, 
                                         JWT_ALGORITHM)
@@ -81,9 +84,28 @@ def refresh(request):
             
     return Response(refresh_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @auth_required
-def home(request):
+def employee(request):
     if request.method == 'GET':
+        try:
+            connection = mysql_connector.connect(**settings.DATABASE_CREDENTIALS)
+            cursor = connection.cursor()
+            cursor.execute(
+                f"""
+                CALL GetEmployees({request.user['id']})
+                """
+            )
+            employees = employee_db_convertor(cursor.fetchall())
+            connection.close()
+        except mysql_connector.Error as e:
+            return Response({"message": e.msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
         pass
-    return Response({"message": ""})
+    return  Response({})
+
+@api_view(['GET', 'PUT'])
+def employee_detail(request, id):
+    return Response({})
+
+
