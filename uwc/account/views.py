@@ -1,10 +1,12 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.http import Http404
 from rest_framework import status
 from .serializers import (
      LoginSerializer, 
      RefreshSerializer, 
      EmployeeSerializer,
+     UpdateEmployeeSerializer,
 )
 from django.conf import settings
 from mysql import connector as mysql_connector
@@ -25,10 +27,9 @@ def login(request):
     serializer = LoginSerializer(data=request.data)
     if serializer.is_valid():
         credentials = serializer.data
-        user=None
         try:
             connection = connect_db()
-            cursor = connection.cursor()
+            cursor = connection.cursor(dictionary=True)
             cursor.execute(
                 f"""
                 CALL `GetUserFromLogin`(
@@ -37,7 +38,7 @@ def login(request):
                     )
                 """
             )
-            user = user_db_convertor(cursor.fetchall()[0])  # only get 1 user.
+            user = cursor.fetchall()[0]  # only get 1 user.
             connection.close()
             
             token = jwt.encode({'user_id' : user["id"], 
@@ -93,14 +94,19 @@ def employee(request):
     if request.method == 'GET':
         try:
             connection = mysql_connector.connect(**settings.DATABASE_CREDENTIALS)
-            cursor = connection.cursor()
+            cursor = connection.cursor(dictionary=True)
             cursor.execute(
                 f"""
                 CALL GetEmployees({request.user['id']})
                 """
             )
-            employees = employee_db_convertor(cursor.fetchall())
+            employees = cursor.fetchall()
+            for employee in employees:
+                employee.pop('password')
+                employee.pop('is_backofficer')
+                employee.pop('user_id')
             connection.close()
+
         except mysql_connector.Error as e:
             return Response({"message": e.msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(employees, status=status.HTTP_200_OK)
@@ -111,34 +117,96 @@ def employee(request):
         try:
             connection = connect_db()
             cursor = connection.cursor()
-            cursor.execute(
-                f"""
-                CALL InsertEmployee(NULL,
-                '{employee_data['username']}',
-                sha2('{employee_data['password']}',0),
-                '{employee_data['name']}',
-                {request.user['id']},
+            result = cursor.callproc('InsertEmployee', (
+               None,
+                employee_data['username'],
+                employee_data['password'],
+                employee_data['name'],
+                request.user['id'],
                 1,
-                SYSDATE(),
-                '{employee_data['address']}',
-                '{employee_data['birth']}',
-                '{employee_data['gender']}',
-                '{employee_data['phone']}',
-                '{employee_data['email']}',
-                NULL,
-                {int(employee_data['role'])},
-                {employee_data['salary']});
-                """
-            )
+                str(datetime.now()),
+                employee_data['address'],
+                employee_data['birth'],
+                employee_data['gender'],
+                employee_data['phone'],
+                employee_data['email'],
+                None,
+                int(employee_data['role']),
+                employee_data['salary']
+            ))
+            cursor.close()
             connection.commit()
+
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute(f'CALL GetUser({result[0]})')
+            employee = cursor.fetchall()
             connection.close()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            return Response(employee, status=status.HTTP_201_CREATED)
         except (mysql_connector.Error) as e:
             return Response({"message": e.msg}, status=status.HTTP_400_BAD_REQUEST)
     return  Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET', 'PUT'])
+@api_view(['GET', 'PUT', 'DELETE'])
+@auth_required
 def employee_detail(request, id):
-    return Response({})
+    # Check id
+    try:
+        connection = connect_db()
+        cursor = connection.cursor()
+        cursor.execute(f'CALL GetUser({id})')
+        employee = cursor.fetchone()
+        connection.close()
+        if not employee:
+            raise Http404
 
+    # Get Method
+        if request.method == 'GET':
+            connection = connect_db()
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute(
+                f"""
+                CALL RetrieveSchedule({id});
+                """
+            )
+            schedule = cursor.fetchone()
+            employee['schedule'] = schedule
 
+            return Response(employee, status=status.HTTP_200_OK)
+        # Put Method
+        elif request.method == 'PUT':
+            serializer = UpdateEmployeeSerializer(data=request.data)
+            if serializer.is_valid():
+                update_data = serializer.data
+                update_fields_order = ('name', 'address', 'birth', 'gender', 'phone',
+                                'email','manager_id', 'vehicle_id', 'start_date',
+                                'radius', 'mcp_id', 'route_id', 'is_working', 'role', 'salary')
+                connection = connect_db()
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute(
+                    'CALL UpdateEmployee(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', 
+                    (id, *(update_data[field] for field in update_fields_order))
+                    )
+                connection.commit()
+                cursor.close()
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute(f'CALL GetUser({id})')
+                employee_detail = cursor.fetchall()
+                connection.close()
+                return Response(employee_detail, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Delete Method
+        connection = connect_db()
+        cursor = connection.cursor()
+        cursor.execute(f'CALL DeleteEmployee({id})')
+        connection.commit()
+        connection.close()
+
+        return Response({'message': 'success'}, status=status.HTTP_200_OK)
+    except mysql_connector.Error as e:
+        return Response({'message': e.msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST', 'GET', 'DELETE'])
+@auth_required
+def task(request):
+    pass

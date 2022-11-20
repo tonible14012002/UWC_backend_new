@@ -1,6 +1,6 @@
 import jwt
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
+from rest_framework import status
 from mysql import connector as mysql_connector
 from django.conf import settings
 from .utils import (
@@ -18,7 +18,7 @@ def auth_required(func):
         if not bearer:
             return Response({
                 "message": "Authorization required, missing bearer token."
-            }, status= HTTP_400_BAD_REQUEST)
+            }, status= status.HTTP_400_BAD_REQUEST)
         try:
             token = bearer.split(" ")[1]
             payload = jwt.decode(token, JWT_SECRET, JWT_ALGORITHM)
@@ -28,22 +28,27 @@ def auth_required(func):
                 
                 user_id = payload.get('user_id')
                 connection = connect_db()
-                cursor = connection.cursor()
+                cursor = connection.cursor(dictionary=True)
                 cursor.execute(
                     f"""
-                    CALL GetBackOfficerUser ({user_id})
+                    CALL GetUser({user_id})
                     """
                 )
-                user =  user_db_convertor(cursor.fetchall()[0])
+                user =  cursor.fetchall()[0]
+                if not user['is_backofficer']:
+                    return Response(
+                        {"message": "This is not back officer account"}, 
+                        status=status.HTTP_401_UNAUTHORIZED
+                    )
                 request.user = user
         except (mysql_connector.Error) as e:
             return Response({
                 "message": e.msg
-            }, status=HTTP_400_BAD_REQUEST)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except (jwt.DecodeError, jwt.ExpiredSignatureError):
             return Response({
                 "message": "Token is invalid or expired"
-            }, status=HTTP_401_UNAUTHORIZED)
+            }, status=status.HTTP_401_UNAUTHORIZED)
             
         return func(request, *args, **kwargs)
 
