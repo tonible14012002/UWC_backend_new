@@ -7,6 +7,7 @@ from .serializers import (
      RefreshSerializer, 
      EmployeeSerializer,
      UpdateEmployeeSerializer,
+     WorkTimeSerializer,
 )
 from django.conf import settings
 from mysql import connector as mysql_connector
@@ -59,7 +60,7 @@ def login(request):
             })
 
         except (mysql_connector.Error) as e:
-            return Response({'message': e.msg }, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': e.msg }, status=status.HTTP_400_BAD_REQUEST)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
@@ -79,11 +80,11 @@ def refresh(request):
                 return Response({
                     "access": new_token
                 }, status=status.HTTP_200_OK)
-            return Response({"message": "refresh token is invalid"})
+            return Response({"detail": "refresh token is invalid"})
         
         except (jwt.DecodeError, jwt.ExpiredSignatureError):
             return Response({
-                "message": "Token is invalid or expired"
+                "detail": "Token is invalid or expired"
             }, status=status.HTTP_400_BAD_REQUEST)
             
     return Response(refresh_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -108,7 +109,7 @@ def employee(request):
             connection.close()
 
         except mysql_connector.Error as e:
-            return Response({"message": e.msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"detail": e.msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(employees, status=status.HTTP_200_OK)
     # POST method
     serializer = EmployeeSerializer(data=request.data)
@@ -144,7 +145,7 @@ def employee(request):
 
             return Response(employee, status=status.HTTP_201_CREATED)
         except (mysql_connector.Error) as e:
-            return Response({"message": e.msg}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": e.msg}, status=status.HTTP_400_BAD_REQUEST)
     return  Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT', 'DELETE'])
@@ -153,7 +154,7 @@ def employee_detail(request, id):
     # Check id
     try:
         connection = connect_db()
-        cursor = connection.cursor()
+        cursor = connection.cursor(dictionary=True)
         cursor.execute(f'CALL GetUser({id})')
         employee = cursor.fetchone()
         connection.close()
@@ -162,16 +163,17 @@ def employee_detail(request, id):
 
     # Get Method
         if request.method == 'GET':
-            connection = connect_db()
+            connection.reconnect()
             cursor = connection.cursor(dictionary=True)
             cursor.execute(
                 f"""
                 CALL RetrieveSchedule({id});
                 """
             )
-            schedule = cursor.fetchone()
+            schedule = cursor.fetchall()
             employee['schedule'] = schedule
 
+            connection.close()
             return Response(employee, status=status.HTTP_200_OK)
         # Put Method
         elif request.method == 'PUT':
@@ -181,7 +183,7 @@ def employee_detail(request, id):
                 update_fields_order = ('name', 'address', 'birth', 'gender', 'phone',
                                 'email','manager_id', 'vehicle_id', 'start_date',
                                 'radius', 'mcp_id', 'route_id', 'is_working', 'role', 'salary')
-                connection = connect_db()
+                connection.reconnect()
                 cursor = connection.cursor(dictionary=True)
                 cursor.execute(
                     'CALL UpdateEmployee(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', 
@@ -196,17 +198,77 @@ def employee_detail(request, id):
                 return Response(employee_detail, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         # Delete Method
-        connection = connect_db()
+        connection.reconnect()
         cursor = connection.cursor()
         cursor.execute(f'CALL DeleteEmployee({id})')
         connection.commit()
         connection.close()
 
-        return Response({'message': 'success'}, status=status.HTTP_200_OK)
+        return Response({'detail': 'success'}, status=status.HTTP_200_OK)
     except mysql_connector.Error as e:
-        return Response({'message': e.msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'detail': e.msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-@api_view(['POST', 'GET', 'DELETE'])
+@api_view(['POST'])
 @auth_required
-def task(request):
-    pass
+def schedule(request, employee_id):
+    try:
+        connection = connect_db()
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(f'CALL GetUser({employee_id})')
+        employee = cursor.fetchone()
+        if not employee:
+            raise Http404
+        cursor.close()
+        connection.close()
+
+        serializer = WorkTimeSerializer(data=request.data)
+        if serializer.is_valid():
+            worktime_data = serializer.data
+            connection.reconnect()
+            cursor = connection.cursor()
+            result = cursor.callproc('InsertShift', (
+                None,
+                worktime_data['start_time'],
+                worktime_data['end_time'],
+                worktime_data['weekday'],
+                employee_id
+                ))
+            cursor.close()
+            connection.commit()
+
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute(f'CALL retrieveShift({result[0]})')
+            worktime = cursor.fetchone()
+            connection.close()
+            return Response(worktime, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    except mysql_connector.Error as e:
+        return Response({'detail': e.msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET', 'DELETE'])
+@auth_required
+def worktime_detail(request, employee_id, id):
+    connection = connect_db()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute(f'CALL GetUser({employee_id})')
+    employee = cursor.fetchone()
+    if not employee:
+        raise Http404
+    connection.close()
+
+    if request.method == 'GET':
+        connection.reconnect()
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(f'CALL retrieveShift({id})')
+        worktime = cursor.fetchone()
+        connection.close()
+
+        return Response(worktime, status=status.HTTP_200_OK)
+    connection.reconnect()
+    cursor = connection.cursor()
+    cursor.callproc('DeleteShift', (id,))
+    connection.commit()
+    connection.close()
+
+    return Response({'detail ': 'success'}, status=status.HTTP_200_OK)
