@@ -157,7 +157,7 @@ def RealtimeRoute(request, id):
         connection = connect_db()
         cursor = connection.cursor(dictionary=True)
         # get MCPs from route
-        cursor.execute(f'RetrieveMCPsFromRoute({id})')
+        cursor.execute(f'CALL RetrieveMCPsFromRoute({id})')
         mcps = cursor.fetchall()
         # drop mcps with less than 15% load
         for i in range(len(mcps)-1, -1, -1):
@@ -170,9 +170,8 @@ def RealtimeRoute(request, id):
         res = {
             'route id': id,
             'distance': distance,
-            'ordered MCPs': [mcps[index]['MCP_id'] for index in permutation]
+            'ordered MCPs': [mcps[index]['id'] for index in permutation]
         }
-        connection.commit()
         connection.close()
     except mysql_connector.Error as e:
         return Response({"message": e.msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
