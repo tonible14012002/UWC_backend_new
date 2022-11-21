@@ -31,7 +31,7 @@ Make requests against the HTTP server to test:
 ```bash
 curl "http://127.0.0.1:5000/route/v1/driving/13.388860,52.517037;13.385983,52.496891?steps=true"
 ```
-# setup environment
+# Setup environment
 Clone project from github.  
 Config manually the DATABASE_CREDENTIALS section in the uwc_backend/settings.py. Change the password to fit your MySQL account. 
 ```python
@@ -63,11 +63,11 @@ all urls in this section begin with http://127.0.0.1:8000/accounts/
 ```
 auth/
 ```
-POST: User provides username and password of a backofficer account stored in the db, not the MySQL account, in request body and receives in turn access token.
+POST: User provides **username** and **password** of a backofficer account stored in the db, not the MySQL account, in request body and receives in turn access token.
 ```
 auth/refresh/
 ```
-POST: Refresh token will return new token.  
+POST: Provide **refresh** token and receive new access token.  
 Both of the above requests returns the following response payload:
 ```json
 {
@@ -116,4 +116,38 @@ However if your wanna update an employee user, you can provide a nested json emp
 }
 ```
 ### c. map and route
-`
+```
+map/
+```
+GET: Return all MCPs managed by the backofficer on map and their details.
+```
+map/route/
+```
+GET: Return all current routes in the db, excluding their layout (MCPs).  
+POST: User provides to request body a list of MCPs, each with these attributes: **MCP_id, longtitude, latitude**. Example payload:
+```json
+[
+    {
+        "MCP_id": 7,
+        "longtitude": 106.6662570,
+        "latitude": 10.7769350
+    },
+    {
+        "MCP_id": 8,
+        "longtitude": 106.6634590,
+        "latitude": 10.7828160
+    }
+]
+```
+Server returns MCPs with orders.
+```
+map/route/id
+```
+GET: Return the layout of route with **id**.  
+PUT: User provides to request body a list of MCPs specified above with the same payload format. Server update layout of the route with **id** and returns MCPs with new orders.
+DELETE: Delete route with **id**
+```
+map/route/id/optimize
+```
+GET: Return the optimized layout of a route that trims off MCPs with less thanf 15% load. Orders also are provided.
+
