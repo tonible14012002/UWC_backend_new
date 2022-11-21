@@ -25,7 +25,7 @@ docker run -t -v "${PWD}:/data" osrm/osrm-backend osrm-customize /data/vietnam-l
 ```
 Note that vietnam-latest.osrm has a different file extension.
 ```bash
-docker run -t -i -p 5000:5000 -v "${PWD}:/data" osrm/osrm-backend osrm-routed --algorithm mld /data/berlin-latest.osrm
+docker run -t -i -p 5000:5000 -v "${PWD}:/data" osrm/osrm-backend osrm-routed --algorithm mld /data/vietnam-latest.osrm
 ```
 Make requests against the HTTP server to test:
 ```bash
@@ -34,6 +34,14 @@ curl "http://127.0.0.1:5000/route/v1/driving/13.388860,52.517037;13.385983,52.49
 # setup environment
 Clone project from github.  
 Config manually the DATABASE_CREDENTIALS section in the uwc_backend/settings.py. Change the password to fit your MySQL account. 
+```python
+DATABASE_CREDENTIALS = {
+    'user':'root',
+    'password':'${YOUR_PASSWORD}',
+    'host':'127.0.0.1',
+    'database': 'uwc_2.0'
+}
+```
 ## create virtual environment 
 Create new virtualenvironment inside project folder and activate it.
 ```bash
@@ -59,7 +67,7 @@ POST: User provides username and password of a backofficer account stored in the
 ```
 auth/refresh/
 ```
-POST: Refresh token will return new token.
+POST: Refresh token will return new token.  
 Both of the above requests returns the following response payload:
 ```json
 {
