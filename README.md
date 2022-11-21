@@ -11,7 +11,7 @@ Insert.sql
 Download Docker.  
 Download OpenStreetMap extracts for Vietnam from Geofabrik:
 ```bash
-wget http://download.geofabrik.de/europe/germany/vietnam-latest.osm.pbf
+wget https://download.geofabrik.de/asia/vietnam-latest.osm.pbf
 ```
 ## Pre-process the extract with the car profile and start a routing engine HTTP server on port 5000
 Store the file within a local directory "${PWD}" self defined.
