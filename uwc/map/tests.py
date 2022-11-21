@@ -27,84 +27,84 @@ for resu in cursor.stored_results():
 
 # Create your views here.
 depot = {
-    'lng': 106.625786,
-    'lat': 10.810676
+    'longtitude': 106.625786,
+    'latitude': 10.810676
 }
 treatment_plant = {
-    'lng': 106.628212,
-    'lat': 10.811756
+    'longtitude': 106.628212,
+    'latitude': 10.811756
 }
 MCP1 = {
-    'lat': 10.773045,
-    'lng': 106.657501
+    'latitude': 10.773045,
+    'longtitude': 106.657501
 }
 
 MCP2 = {
-    'lat': 10.786654,
-    'lng': 106.653745
+    'latitude': 10.786654,
+    'longtitude': 106.653745
 }
 
 MCP3 = {
-    "lat": 10.780086,
-    "lng": 106.658821
+    'latitude': 10.780086,
+    'longtitude': 106.658821
 }
 
 MCP4 = {
-    "lat": 10.775828,
-    "lng": 106.663421
+    'latitude': 10.775828,
+    'longtitude': 106.663421
 }
 
 MCP5 = {
-    "lat": 10.764715,
-    "lng": 106.659960
+    'latitude': 10.764715,
+    'longtitude': 106.659960
 }
 
 MCP6 = {
-    "lat": 10.770870,
-    "lng": 106.653347
+    'latitude': 10.770870,
+    'longtitude': 106.653347
 }
 
 MCP7 = {
-    "lat": 10.778742,
-    "lng": 106.662589
+    'latitude': 10.778742,
+    'longtitude': 106.662589
 }
 
 MCP8 = {
-    "lat": 10.776935,
-    "lng": 106.666257
+    'latitude': 10.776935,
+    'longtitude': 106.666257
 }
 
 MCP9 = {
-    "lat": 10.782816,
-    "lng": 106.663459
+    'latitude': 10.782816,
+    'longtitude': 106.663459
 }
 
 MCP10 = {
-    "lat": 10.784208,
-    "lng": 106.669609
+    'latitude': 10.784208,
+    'longtitude': 106.669609
 }
 
 MCP11 = {
-    "lat": 10.786800,
-    "lng": 106.664690
+    'latitude': 10.786800,
+    'longtitude': 106.664690
 }
 
 MCP12 = {
-    "lat": 10.783208,
-    "lng": 106.657961
+    'latitude': 10.783208,
+    'longtitude': 106.657961
 }
 
 URL = 'http://127.0.0.1:5000/route/v1/driving/'
 URL2 = 'http://127.0.0.1:5000/table/v1/driving/'
 def dist(x, y):
     # x, y are locations dictionary, containing long- and lat- titude
-    response = requests.get(URL+str(x['lng'])+','+str(x['lat'])
-                      +';'+str(y['lng'])+','+str(y['lat'])).json()
+    response = requests.get(URL+str(x['longtitude'])+','+str(x['latitude'])
+                      +';'+str(y['longtitude'])+','+str(y['latitude'])).json()
     return response['routes'][0]['distance']
 def GetDistanceMatrix (data):
     final_URL = URL2
     for item in data:
-        final_URL += str(item['lng'])+','+str(item['lat'])+';'
+        final_URL += str(item['longtitude'])+','+str(item['latitude'])+';'
     final_URL = final_URL.rstrip(';')
     final_URL += '?annotations=distance'
     response = requests.get(final_URL).json()
@@ -115,7 +115,7 @@ def haversine(x, y):
     on the earth (specified in decimal degrees)
     """
     # convert decimal degrees to radians
-    lon1, lat1, lon2, lat2 = map(radians, [x['lng'], x['lat'], y['lng'], y['lat']])
+    lon1, lat1, lon2, lat2 = map(radians, [x['longtitude'], x['latitude'], y['longtitude'], y['latitude']])
 
     # haversine formula
     dlon = lon2 - lon1
@@ -152,7 +152,7 @@ data_list = [MCP1, MCP2, MCP3, MCP4, MCP5, MCP6, MCP7, MCP8, MCP9]
 
 #print(MakeDistanceMatrix(data_list))
 def get_route(x, y):
-    loc = "{},{};{},{}".format(x['lng'], x['lat'], y['lng'], y['lat'])
+    loc = "{},{};{},{}".format(x['longtitude'], x['latitude'], y['longtitude'], y['latitude'])
     url = "http://router.project-osrm.org/route/v1/driving/"
     r = requests.get(url + loc)
     if r.status_code != 200:
