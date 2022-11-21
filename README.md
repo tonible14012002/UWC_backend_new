@@ -103,31 +103,45 @@ POSt: User includes these fields in request body: **username, password, name, ad
 ```css
 accounts/employee/id/
 ```
-
-### ***
-urls will be in this format 
-```bash
-http://127.0.0.1:8000/accounts/back-officers/{id}/
-http://127.0.0.1:8000/accounts/employees/{id}/
-```
-- provide user_id if you want to update, retrieve, delete specific user (PUT, GET, DELETE).
-##### register
-Request payload for register (POST) must include these fields: **username, password, name, address, gender, phone, email, role, salary, birth,**
-- If you are creating an employee user, provide additional employee field: **manager_id, role**
-- 
-
-However if your wanna update an employee user, you can provide a nested json employee field. In updating, no fields is required, you can update many fields or just one. Payload example:
+GET: Return an employee detail  
+PUT: User updates an employee by including these fields in request body: **name, address, birth, gender, phone, email, manager_id, vehicle_id, start_date, radius, mcp_id, route_id, is_working, role, salary,**. Example payload:
 ```json
 {
-    "user_fiels...": "update value",
-    "employee": {
-        "role": "COLLECTOR/JANITOR",
-        "start_date": "MMMM-YY-DD",
-        "is_working": "true/false",
-        "manager": "new manager id"
-    }
+    "name": "____",
+    "address": "____",
+    "birth": "YYYY-MM-DD",
+    "gender": "male/female",
+    "phone": "____",
+    "email": "____",
+    "manager_id": null,
+    "vehicle_id": _,
+    "startdate": "YYYY-MM-DD",
+    "radius": 324,
+    "mcp_id": 3,
+    "route_id": null,
+    "is_working": null,
+    "role": 1,
+    "salary": 6000000
 }
 ```
+DELETE: Delete an employee data with **id**.
+```css
+accounts/employee/id/schedule
+```
+POST: User creates a workshift for employee with **id** by including these fields in request body: **start_time, end_time, weekday**. Example payload:
+```json
+{
+    "start_time": 12,
+    "end_time": 18,
+    "weekday": "Mon/Tue/Wed/Thur/Fri/Sat/Sun"
+}
+```
+### ***
+```css
+accounts/employee/emp_id/schedule/shift_id
+```
+GET: Return a workshift with **shift_id** of employee **emp_id**.  
+DELETE: Delete a workshift with **shift_id** of employee **emp_id**.  
 ### c. map and route
 ### ***
 ```css
