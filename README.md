@@ -1,6 +1,6 @@
 # UWC_backend_new
 # Setup MySQL
-Take scripts in the Scripts folder of the repo and run in MySQL workbench to create a db, according to the following order:
+Take scripts in the "MySQL Scripts" folder of the repo and run in MySQL workbench to create a db, according to the following order:
 ```
 Schema.sql
 Procedure.sql
