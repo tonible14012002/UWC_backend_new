@@ -144,8 +144,8 @@ Server returns MCPs with orders.
 map/route/id
 ```
 GET: Return the layout of route with **id**.  
-PUT: User provides to request body a list of MCPs specified above with the same payload format. Server update layout of the route with **id** and returns MCPs with new orders.
-DELETE: Delete route with **id**
+PUT: User provides to request body a list of MCPs specified above with the same payload format. Server update layout of the route with **id** and returns MCPs with new orders.  
+DELETE: Delete route with **id**.
 ```
 map/route/id/optimize
 ```
