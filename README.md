@@ -122,8 +122,8 @@ However if your wanna update an employee user, you can provide a nested json emp
 ```
 ### c. map and route
 ### ***
-```diff
--map/
+```css
+map/
 ```
 GET: Return all MCPs managed by the backofficer on map and their details.  
 ### ***
