@@ -1,6 +1,6 @@
 # UWC_backend_new
 # Setup MySQL
-Take scripts in the "MySQL Scripts" folder of the repo and run in MySQL workbench to create a db, according to the following order:
+Take scripts in the "MySQL Scripts" folder of the repo and run in MySQL workbench/MySQL Shell to create a db, according to the following order:
 ```
 Schema.sql
 Procedure.sql
@@ -8,7 +8,7 @@ Trigger.sql
 Insert.sql
 ```
 # Setup OSRM
-Download Docker.
+Download Docker.  
 Download OpenStreetMap extracts for Vietnam from Geofabrik:
 ```bash
 wget http://download.geofabrik.de/europe/germany/vietnam-latest.osm.pbf
