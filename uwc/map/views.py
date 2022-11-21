@@ -6,13 +6,7 @@ from .serializers import MCPSerializer
 
 from mysql import connector as mysql_connector
 
-import sys
-sys.path.insert(1, 'C:\\Users\WIN\Documents\GitHub\\UWC_backend_new\\uwc\\account\\')
-
-from utils import connect_db
-from account.token import JWT_SECRET, JWT_ALGORITHM
-from datetime import datetime, timedelta
-import jwt
+from account.utils import connect_db
 from account.token import auth_required
 from .utils import FindOrder, THRESHOLD
 
