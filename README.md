@@ -60,11 +60,11 @@ python manage.py runserver
 ## 1. User apis set
 all urls in this section begin with http://127.0.0.1:8000/
 ### a. authenticate
-```
+```css
 accounts/auth/
 ```
 POST: User provides **username** and **password** of a backofficer account stored in the db, not the MySQL account, in request body and receives in turn access token.
-```
+```css
 accounts/auth/refresh/
 ```
 POST: Provide **refresh** token and receive new access token.  
@@ -80,10 +80,30 @@ Both of the above requests returns the following response payload:
 ```
 ### b. user apis set
 ### ***
-```
+```css
 accounts/employee/
 ```
-GET: Return all employees working under back officer with **request.user['id']**
+GET: Return all employees working under back officer with **request.user['id']**.  
+POSt: User includes these fields in request body: **username, password, name, address, gender, phone, email, role, salary, birth,**. Example payload:
+```json
+{
+    "username": "____",
+    "password": "____",
+    "name": "____",
+    "address": "____",
+    "gender": "male/female",
+    "phone": "____",
+    "email": "____",
+    "role": 1,
+    "salary": 6000000,
+    "birth": "YYYY-MM-DD",
+}
+```
+### ***
+```css
+accounts/employee/id/
+```
+
 ### ***
 urls will be in this format 
 ```bash
@@ -92,22 +112,10 @@ http://127.0.0.1:8000/accounts/employees/{id}/
 ```
 - provide user_id if you want to update, retrieve, delete specific user (PUT, GET, DELETE).
 ##### register
-Request payload for register (POST) must include these fields: **username, password, last_name , first_name, confirm_password, address, phone, birth,**
+Request payload for register (POST) must include these fields: **username, password, name, address, gender, phone, email, role, salary, birth,**
 - If you are creating an employee user, provide additional employee field: **manager_id, role**
-- Example payload
-```json
-{
-    "username": "____",
-    "password": "____",
-    "confirm_password": "____",
-    "email": "____",
-    "phone": "____",
-    "address": "____",
-    "birth": "YYYY-MM-DD",
-    "manager_id": "back_officer id, not user_id",
-    "role": "JANITOR/COLLECTOR"
-}
-```
+- 
+
 However if your wanna update an employee user, you can provide a nested json employee field. In updating, no fields is required, you can update many fields or just one. Payload example:
 ```json
 {
@@ -127,7 +135,7 @@ map/
 ```
 GET: Return all MCPs managed by the backofficer on map and their details.  
 ### ***
-```
+```css
 map/route/
 ```
 GET: Return all current routes in the db, excluding their layout (MCPs).  
@@ -148,14 +156,14 @@ POST: User provides to request body a list of MCPs, each with these attributes: 
 ```
 Server returns MCPs with orders.  
 ### ***
-```
+```css
 map/route/id
 ```
 GET: Return the layout of route with **id**.  
 PUT: User provides to request body a list of MCPs specified above with the same payload format. Server update layout of the route with **id** and returns MCPs with new orders.  
 DELETE: Delete route with **id**.  
 ### ***
-```
+```css
 map/route/id/optimize
 ```
 GET: Return the optimized layout of a route that trims off MCPs with less thanf 15% load. Orders also are provided.
