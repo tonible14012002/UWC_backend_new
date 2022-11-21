@@ -116,10 +116,12 @@ However if your wanna update an employee user, you can provide a nested json emp
 }
 ```
 ### c. map and route
+###***
 ```
 map/
 ```
-GET: Return all MCPs managed by the backofficer on map and their details.
+GET: Return all MCPs managed by the backofficer on map and their details.  
+###***
 ```
 map/route/
 ```
@@ -139,13 +141,15 @@ POST: User provides to request body a list of MCPs, each with these attributes: 
     }
 ]
 ```
-Server returns MCPs with orders.
+Server returns MCPs with orders.  
+###***
 ```
 map/route/id
 ```
 GET: Return the layout of route with **id**.  
 PUT: User provides to request body a list of MCPs specified above with the same payload format. Server update layout of the route with **id** and returns MCPs with new orders.  
-DELETE: Delete route with **id**.
+DELETE: Delete route with **id**.  
+###***
 ```
 map/route/id/optimize
 ```
