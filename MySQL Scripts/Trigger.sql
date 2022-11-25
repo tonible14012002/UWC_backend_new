@@ -144,6 +144,25 @@ BEGIN
 	RETURN max_cap;
 END$$
 --
+-- function to get total load of a route
+DELIMITER |
+DROP FUNCTION IF EXISTS `GetRouteLoad`|
+CREATE FUNCTION `GetRouteLoad`(
+	route_id BIGINT
+)
+RETURNS numeric(9,3)
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+	DECLARE res NUMERIC(9,3);
+	SELECT SUM(asset.`load`) INTO res
+	FROM route, contains_mcp, asset
+	WHERE route.id = route_id AND
+		  contains_mcp.route_id = route.id AND
+		  contains_mcp.mcp_id = asset.id;
+	RETURN res;
+END |
+--
 -- Create trigger to react if insert mcp overloading the truck on route.
 DROP TRIGGER IF EXISTS overloaded_mcp_route_insert$$
 CREATE TRIGGER overloaded_mcp_route_insert
@@ -298,7 +317,7 @@ BEGIN
     CLOSE curID;
 END $$
 --
--- Shift Inset trigger
+-- Shift Insert trigger
 DROP TRIGGER IF EXISTS Shift_Insert $$
 CREATE TRIGGER Shift_Insert 
 	BEFORE INSERT 

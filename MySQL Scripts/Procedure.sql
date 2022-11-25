@@ -1,5 +1,5 @@
 USE `uwc_2.0`;
--- function to get total load of a route
+-- procedure to get total load of a route
 DELIMITER |
 DROP PROCEDURE IF EXISTS `GetRouteLoad`|
 CREATE PROCEDURE `GetRouteLoad`(
@@ -310,7 +310,7 @@ BEGIN
 	SET jan.mcp_start_date = start_date, 
 		jan.work_radius = work_radius,
 		jan.mcp_id = mcp_id
-	WHERE id = jan_id;
+	WHERE employee_id = jan_id;
 END |
 
 -- procedure to assign route to a collector
@@ -323,7 +323,7 @@ CREATE PROCEDURE `AssignRouteToCollector` (
 BEGIN 
 	UPDATE collector col
 	SET col.route_id = route_id
-	WHERE id = col_id;
+	WHERE employee_id = col_id;
 END |
 
 -- procedure to insert shift into schedule of one employee
@@ -345,7 +345,7 @@ END |
 -- procedure to acquire shift
 DELIMITER |
 DROP PROCEDURE IF EXISTS `RetrieveShift`|
-CREATE PROCEDURE retrieveShift (
+CREATE PROCEDURE RetrieveShift (
 	p_id bigint
 )
 BEGIN
@@ -410,13 +410,29 @@ BEGIN
 	WHERE worktime.id = id;
 END |
 
--- procedure to acquire shift
+-- procedure to acquire all trucks on a route
 DELIMITER |
-DROP PROCEDURE IF EXISTS `RetrieveShift`|
-CREATE PROCEDURE retrieveShift (
-	p_id bigint
-)
+DROP PROCEDURE IF EXISTS `GetTruckOnRoute`|
+CREATE PROCEDURE `GetTruckOnRoute` (route_id BIGINT)
 BEGIN
-	select * from worktime where id=p_id ;
+	SELECT *
+	FROM collector, employee, vehicle
+	WHERE user_id = employee_id AND
+		  vehicle_id = asset_id AND 
+		  is_working = 1 AND 
+		  `type` = 'truck' AND 
+		  collector.route_id = route_id;
 END |
 
+-- procedure to acquire all working collector 
+DELIMITER |
+DROP PROCEDURE IF EXISTS `GetWorkingCollector`|
+CREATE PROCEDURE `GetWorkingCollector` ()
+BEGIN
+	SELECT *
+	FROM collector, employee
+	WHERE user_id = employee_id AND
+		  `is_working` = 1;
+END |
+
+-- procedure to acquire all  

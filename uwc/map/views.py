@@ -46,12 +46,15 @@ def RouteWithoutID(request):
                     route_id,
                     i #order
                 ))
+            # get total load from route
+            load = cursor.callproc('GetRouteLoad', [route_id, None])
             # update distance
             cursor.callproc('UpdateDistance', (route_id, distance))
             # set result format
             res = {
                 'route id': route_id,
                 'distance': distance,
+                'load': load[1],
                 'ordered MCPs': [route_data[index]['MCP_id'] for index in permutation]
             }
             connection.commit()
@@ -70,13 +73,16 @@ def RouteWithID(request, id):
             connection = connect_db()
             cursor = connection.cursor()
             res = cursor.callproc('GetDistance', [id,None])
-            distance =res[1]# get distance
+            distance = res[1]# get distance
+
+            # get total load from route
+            load = cursor.callproc('GetRouteLoad', [id, None])
+
             # get MCPs from route
             cursor = connection.cursor(dictionary=True)
             cursor.execute(f'CALL RetrieveMCPsFromRoute({id})')
             mcps = cursor.fetchall()
-            # get total load from route
-            load = cursor.callproc('GetRouteLoad',(id,None))
+
             # format result
             res = {
                 'route id': id,
