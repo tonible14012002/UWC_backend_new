@@ -18,11 +18,17 @@ CALL InsertMCP(106.653347, 10.770870, RAND()*100, RAND()*100+300, RAND()*60, 0);
 
 -- Insert vehicle
 CALL InsertVehicle(106.625786, 10.810676, 0, RAND()*100+900, 'truck');
+SET @truck1 = last_insert_id();
 CALL InsertVehicle(106.625786, 10.810676, 0, RAND()*100+900, 'truck');
+SET @truck2 = last_insert_id();
 CALL InsertVehicle(106.625786, 10.810676, 0, RAND()*100+900, 'truck');
+SET @truck3 = last_insert_id();
 CALL InsertVehicle(106.625786, 10.810676, 0, RAND()*100+100, 'trolley');
+SET @troll1 = last_insert_id();
 CALL InsertVehicle(106.625786, 10.810676, 0, RAND()*100+100, 'trolley');
+SET @troll2 = last_insert_id();
 CALL InsertVehicle(106.625786, 10.810676, 0, RAND()*100+100, 'trolley');
+SET @troll3 = last_insert_id();
 
 -- Insert back officer
 INSERT INTO `user`
@@ -65,23 +71,29 @@ SET @dummy = NULL;
 CALL InsertEmployee(@dummy,'trangbku123','trangthaomai212','Doan Thi Trang',@latest_bo_id,ROUND(RAND()),SYSDATE(),NULL,NULL,'female','0123567980','trangdoan@gmail.com',NULL,0,6000000);
 CALL AssignAreaToJanitor(200+RAND()*300, @mcp1, CURDATE(),last_insert_id()); 
 CALL InsertShift(@dummy,'00:00:00','02:00:00','Mon',last_insert_id());
+UPDATE employee SET vehicle_id = @troll1 WHERE user_id = last_insert_id();
 
 CALL InsertEmployee(@dummy,'giaunhucho999','lotto77777','Le Van Giau',@latest_bo_id,ROUND(RAND()),SYSDATE(),NULL,NULL,'male','0987123789','ngheo12@gmail.com',NULL,1,7000000);
 CALL AssignRouteToCollector(@route1,last_insert_id());
 CALL InsertShift(@dummy,'05:00:00','07:00:00','Sat',last_insert_id());
+UPDATE employee SET vehicle_id = @truck1 WHERE user_id = last_insert_id();
 
 CALL InsertEmployee(@dummy,'Thythycute666','06052001Thy','Khuc Thy',@latest_bo_id,ROUND(RAND()),SYSDATE(),NULL,NULL,'female','0987123789','thythy99@gmail.com',NULL,0,6000000);
 CALL AssignAreaToJanitor(200+RAND()*300, @mcp2, CURDATE(),last_insert_id());
 CALL InsertShift(@dummy,'09:00:00','11:30:00','Thur',last_insert_id());
+UPDATE employee SET vehicle_id = @troll2 WHERE user_id = last_insert_id();
 
 CALL InsertEmployee(@dummy,'VanAvt1200','123456789','Nguyen Van A',@latest_bo_id,ROUND(RAND()),SYSDATE(),NULL,NULL,'male','0977077629','Bomavt11@gmail.com',NULL,1,7000000);
 CALL AssignRouteToCollector(@route2,last_insert_id());
 CALL InsertShift(@dummy,'10:00:00','12:00:00','Tue',last_insert_id());
+UPDATE employee SET vehicle_id = @truck2 WHERE user_id = last_insert_id();
 
 CALL InsertEmployee(@dummy,'BBBboyhotrac3','BBBhotracboy44','Nguyen Van B',@latest_bo_id,ROUND(RAND()),SYSDATE(),NULL,NULL,'male','0921666111','Brherjfe1@gmail.com',NULL,0,6000000);
 CALL AssignAreaToJanitor(200+RAND()*300, @mcp3, CURDATE(),last_insert_id());
 CALL InsertShift(@dummy,'09:00:00','11:10:00','Fri',last_insert_id());
+UPDATE employee SET vehicle_id = @troll3 WHERE user_id = last_insert_id();
 
 CALL InsertEmployee(@dummy,'123CsuiRR321','khoaito3279','Nguyen Van C',@latest_bo_id,ROUND(RAND()),SYSDATE(),NULL,NULL,'male','0125721021','Hieheit11@gmail.com',NULL,1,7000000);
 CALL AssignRouteToCollector(@route1,last_insert_id());
 CALL InsertShift(@dummy,'00:00:00','02:00:00','Wed',last_insert_id());
+UPDATE employee SET vehicle_id = @truck3 WHERE user_id = last_insert_id();
