@@ -237,7 +237,7 @@ def schedule(request, employee_id):
             connection.commit()
 
             cursor = connection.cursor(dictionary=True)
-            cursor.execute(f'CALL retrieveShift({result[0]})')
+            cursor.execute(f'CALL RetrieveShift({result[0]})')
             worktime = cursor.fetchone()
             connection.close()
             return Response(worktime, status=status.HTTP_200_OK)
@@ -260,7 +260,7 @@ def worktime_detail(request, employee_id, id):
     if request.method == 'GET':
         connection.reconnect()
         cursor = connection.cursor(dictionary=True)
-        cursor.execute(f'CALL retrieveShift({id})')
+        cursor.execute(f'CALL RetrieveShift({id})')
         worktime = cursor.fetchone()
         connection.close()
 

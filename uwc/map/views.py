@@ -75,10 +75,13 @@ def RouteWithID(request, id):
             cursor = connection.cursor(dictionary=True)
             cursor.execute(f'CALL RetrieveMCPsFromRoute({id})')
             mcps = cursor.fetchall()
+            # get total load from route
+            load = cursor.callproc('GetRouteLoad',(id,None))
             # format result
             res = {
                 'route id': id,
                 'distance': distance,
+                'total load': load[1],
                 'MCPs': mcps
             }
             connection.close()
@@ -107,10 +110,13 @@ def RouteWithID(request, id):
                     ))
                 # update distance
                 cursor.callproc('UpdateDistance', (id, distance))
+                # get total load from route
+                load = cursor.callproc('GetRouteLoad',(id,None))
                 # set result format
                 res = {
                     'route id': id,
                     'distance': distance,
+                    'total load': load[1],
                     'ordered MCPs': [route_data[index]['MCP_id'] for index in permutation]
                 }
                 connection.commit()
@@ -152,10 +158,13 @@ def RealtimeRoute(request, id):
         # get MCPs from route
         cursor.execute(f'CALL RetrieveMCPsFromRoute({id})')
         mcps = cursor.fetchall()
-        # drop mcps with less than 15% load
+        # drop mcps with less than 15% load and update new load
+        load = 0 # set new load
         for i in range(len(mcps)-1, -1, -1):
             if mcps[i]['percentage'] < THRESHOLD:
                 mcps.pop(i)
+                continue
+            load += mcps[i]['load'] # update load
         # rearrange the MCPs then return them to UI
         temp_list = copy.deepcopy(mcps)
         permutation, distance = FindOrder(temp_list)  # solve the tsp problem
@@ -163,6 +172,7 @@ def RealtimeRoute(request, id):
         res = {
             'route id': id,
             'distance': distance,
+            'total load': load,
             'ordered MCPs': [mcps[index]['id'] for index in permutation]
         }
         connection.close()

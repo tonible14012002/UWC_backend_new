@@ -10,6 +10,7 @@ from python_tsp.heuristics import solve_tsp_local_search
 from python_tsp.exact import solve_tsp_dynamic_programming
 from python_tsp.heuristics import solve_tsp_simulated_annealing
 from math import isinf
+#from account.utils import connectdb
 # Test here
 #settings.configure()
 connection = mysql_connector.connect(
@@ -18,10 +19,11 @@ connection = mysql_connector.connect(
     password="12012002Duy",
     database="uwc_2.0"
 )
-cursor = connection.cursor(dictionary=True)
-cursor.callproc('RetrieveMCPsFromRoute', [2])
-for resu in cursor.stored_results():
-    print(resu.fetchmany(3))
+cursor = connection.cursor()
+res = cursor.callproc('GetRouteLoad', (1,None))
+print(res[1])
+#for resu in cursor.stored_results():
+#    print(resu.fetchmany(3))
 
 
 
@@ -144,7 +146,7 @@ def FindOrder(data):
         permutation, distance = solve_tsp_local_search(dist_matrix)
     return permutation, distance
 
-data_list = [MCP1, MCP2, MCP3, MCP4, MCP5, MCP6, MCP7, MCP8, MCP9]
+#data_list = [MCP1, MCP2, MCP3, MCP4, MCP5, MCP6, MCP7, MCP8, MCP9]
 #print(FindOrder(data_list))
 #print(haversine(MCP1, MCP5))
 
@@ -214,3 +216,25 @@ dist_matrix = np.c_[col, np.r_[row, corner]]
 
 array = np.array([12,32,434,11,6,7,230])
 #print(array[-2:1:-1] - 3)
+
+def MatchMCPs (mcps):
+    # data is a list of MCP id
+    connection = mysql_connector.connect(
+        host="localhost",
+        user="root",
+        password="12012002Duy",
+        database="uwc_2.0"
+    )
+    cursor = connection.cursor()
+    cursor.execute('SELECT * FROM contains_mcp')
+    routes = cursor.fetchall()
+    p = routes[1] * mcps # exec this first
+    # find which route that contains EXACTLY mcps
+    temp1 = routes[1, 2] - p
+    temp2 = p - routes[1, 2]
+    res = routes[1] - (temp1 + temp2)[0]
+    #print(mcps)
+    #print(routes)
+    #
+mcps = [1, 3, 5, 4]
+#MatchMCPs(mcps)

@@ -1,20 +1,17 @@
 USE `uwc_2.0`;
 -- function to get total load of a route
 DELIMITER |
-DROP FUNCTION IF EXISTS `GetRouteLoad`|
-CREATE FUNCTION `GetRouteLoad` 
-	(route_id BIGINT)
-RETURNS NUMERIC(9,3)
-READS SQL DATA
-DETERMINISTIC
+DROP PROCEDURE IF EXISTS `GetRouteLoad`|
+CREATE PROCEDURE `GetRouteLoad`(
+	route_id BIGINT,
+	OUT `load` NUMERIC(9,3)
+)
 BEGIN
-	DECLARE S_val NUMERIC(9,3);
-	SELECT SUM(`load`) INTO S_val 
+	SELECT SUM(asset.`load`) INTO `load`
 	FROM route, contains_mcp, asset
 	WHERE route.id = route_id AND
 		  contains_mcp.route_id = route.id AND
 		  contains_mcp.mcp_id = asset.id;
-	RETURN S_val;
 END |
 
 -- procedure to insert employee
@@ -415,10 +412,11 @@ END |
 
 -- procedure to acquire shift
 DELIMITER |
-DROP PROCEDURE IF EXISTS `retrieveShift`|
+DROP PROCEDURE IF EXISTS `RetrieveShift`|
 CREATE PROCEDURE retrieveShift (
 	p_id bigint
 )
 BEGIN
 	select * from worktime where id=p_id ;
 END |
+
