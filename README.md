@@ -131,8 +131,8 @@ accounts/employee/id/schedule
 POST: User creates a workshift for employee with **id** by including these fields in request body: **start_time, end_time, weekday**. Example payload:
 ```json
 {
-    "start_time": '12:00:00',
-    "end_time": '14:00:00',
+    "start_time": "12:00:00",
+    "end_time": "14:00:00",
     "weekday": "Mon/Tue/Wed/Thur/Fri/Sat/Sun"
 }
 ```
