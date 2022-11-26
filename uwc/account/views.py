@@ -31,15 +31,14 @@ def login(request):
         try:
             connection = connect_db()
             cursor = connection.cursor(dictionary=True)
-            cursor.execute(
-                f"""
-                CALL `GetUserFromLogin`(
-                    '{credentials['username']}',
-                    '{credentials['password']}'
+            cursor.callproc('GetUserFromLogin',(
+                    credentials['username'],
+                    credentials['password']
                     )
-                """
             )
-            user = cursor.fetchall()[0]  # only get 1 user.
+            res = cursor.stored_results()
+            for tem in res:
+                user = tem.fetchall()[0]  # only get 1 user.
             connection.close()
             
             token = jwt.encode({'user_id' : user["id"], 
