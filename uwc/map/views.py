@@ -22,10 +22,12 @@ def RouteWithoutID(request):
             cursor = connection.cursor(dictionary=True)
             cursor.callproc('RetrieveRoutes', [request.user['id']])
             routes = cursor.stored_results()
+            for temp in routes:
+                res = temp.fetchall()
             connection.close()
         except mysql_connector.Error as e:
             return Response({"message": e.msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        return Response(routes, status=status.HTTP_200_OK)
+        return Response(res, status=status.HTTP_200_OK)
     # POST: Create a new route, return the same route with defined orders of MCPs
     serializer = MCPSerializer(data=request.data, many=True)
     if serializer.is_valid():
@@ -79,16 +81,17 @@ def RouteWithID(request, id):
             load = cursor.callproc('GetRouteLoad', [id, None])
 
             # get MCPs from route
-            cursor = connection.cursor(dictionary=True)
+            cursor = connection.cursor()
             cursor.execute(f'CALL RetrieveMCPsFromRoute({id})')
             mcps = cursor.fetchall()
+            mcps = [list(item) for item in mcps]
 
             # format result
             res = {
                 'route id': id,
                 'distance': distance,
                 'total load': load[1],
-                'MCPs': mcps
+                'ordered MCPs': sum(mcps, [])
             }
             connection.close()
         except mysql_connector.Error as e:

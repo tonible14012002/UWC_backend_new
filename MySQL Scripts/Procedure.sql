@@ -254,7 +254,7 @@ DELIMITER |
 DROP PROCEDURE IF EXISTS `RetrieveMCPsFromRoute`|
 CREATE PROCEDURE `RetrieveMCPsFromRoute`(route_id BIGINT)
 BEGIN
-	SELECT id, `order`, longtitude, latitude, `load`, capacity, `load`/capacity as percentage
+	SELECT id
 	FROM contains_mcp, asset
 	WHERE contains_mcp.route_id = route_id AND 
 		  contains_mcp.mcp_id = asset.id;
