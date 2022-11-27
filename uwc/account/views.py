@@ -36,8 +36,7 @@ def login(request):
                     credentials['password']
                     )
             )
-            res = cursor.stored_results()
-            for tem in res:
+            for tem in cursor.stored_results():
                 user = tem.fetchall()[0]  # only get 1 user.
             connection.close()
             
@@ -95,11 +94,9 @@ def employee(request):
         try:
             connection = mysql_connector.connect(**settings.DATABASE_CREDENTIALS)
             cursor = connection.cursor(dictionary=True)
-            for _ in cursor.execute(f"""
-                CALL GetEmployees({request.user['id']})
-                """, multi=True):
-                pass
-            employees = cursor.fetchall()
+            cursor.callproc('GetEmployees', (request.user['id'],))
+            for tem in cursor.stored_results():
+                employees = tem.fetchall()
             for employee in employees:
                 employee.pop('password')
                 employee.pop('is_backofficer')
@@ -137,11 +134,10 @@ def employee(request):
             connection.commit()
 
             cursor = connection.cursor(dictionary=True)
-            for _ in cursor.execute(f'CALL GetUser({result[0]})',multi=True):
-                pass
-            employee = cursor.fetchall()
+            cursor.callproc('GetUser',(result[0],))
+            for tem in cursor.stored_results():
+                employee = tem.fetchall()
             connection.close()
-
             return Response(employee, status=status.HTTP_201_CREATED)
         except (mysql_connector.Error) as e:
             return Response({"detail": e.msg}, status=status.HTTP_400_BAD_REQUEST)
@@ -154,9 +150,9 @@ def employee_detail(request, id):
     try:
         connection = connect_db()
         cursor = connection.cursor(dictionary=True)
-        for _ in cursor.execute(f'CALL GetUser({id})',multi=True):
-            pass
-        employee = cursor.fetchone()
+        cursor.callproc('GetUser',(id,))
+        for tem in cursor.stored_results():
+            employee = tem.fetchone()
         connection.close()
         if not employee:
             raise Http404
@@ -165,13 +161,9 @@ def employee_detail(request, id):
         if request.method == 'GET':
             connection.reconnect()
             cursor = connection.cursor(dictionary=True)
-            for _ in cursor.execute(
-                f"""
-                CALL RetrieveSchedule({id});
-                """
-            , multi=True):
-                pass
-            schedule = cursor.fetchall()
+            cursor.callproc('RetrieveSchedule',(id,))
+            for tem in cursor.stored_results():
+                schedule = tem.fetchall()
             employee['schedule'] = schedule
 
             connection.close()
@@ -186,25 +178,20 @@ def employee_detail(request, id):
                                 'radius', 'mcp_id', 'route_id', 'is_working', 'role', 'salary')
                 connection.reconnect()
                 cursor = connection.cursor(dictionary=True)
-                for _ in cursor.execute(
-                    'CALL UpdateEmployee(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', 
-                    (id, *(update_data[field] for field in update_fields_order))
-                    , multi= True):
-                    pass
+                cursor.callproc('UpdateEmployee', (id, *(update_data[field] for field in update_fields_order)))
                 connection.commit()
                 cursor.close()
                 cursor = connection.cursor(dictionary=True)
-                for _ in cursor.execute(f'CALL GetUser({id})',multi=True):
-                    pass
-                employee_detail = cursor.fetchall()
+                cursor.callproc('GetUser',(id,))
+                for tem in cursor.stored_results():
+                    employee_detail = tem.fetchall()
                 connection.close()
                 return Response(employee_detail, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         # Delete Method
         connection.reconnect()
         cursor = connection.cursor()
-        for _ in cursor.execute(f'CALL DeleteEmployee({id})',multi=True):
-            pass
+        cursor.callproc('DeleteEmployee',(id,))
         connection.commit()
         connection.close()
 
@@ -218,8 +205,9 @@ def schedule(request, employee_id):
     try:
         connection = connect_db()
         cursor = connection.cursor(dictionary=True)
-        cursor.execute(f'CALL GetUser({employee_id})')
-        employee = cursor.fetchone()
+        cursor.callproc('GetUser',(employee_id,))
+        for tem in cursor.stored_results():
+            employee = tem.fetchone()
         if not employee:
             raise Http404
         cursor.close()
@@ -241,8 +229,9 @@ def schedule(request, employee_id):
             connection.commit()
 
             cursor = connection.cursor(dictionary=True)
-            cursor.execute(f'CALL RetrieveShift({result[0]})')
-            worktime = cursor.fetchone()
+            cursor.callproc('RetrieveShift',(result[0],))
+            for tem in cursor.stored_results():
+                worktime = tem.fetchone()
             connection.close()
             return Response(worktime, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -255,9 +244,9 @@ def schedule(request, employee_id):
 def worktime_detail(request, employee_id, id):
     connection = connect_db()
     cursor = connection.cursor(dictionary=True)
-    for _ in cursor.execute(f'CALL GetUser({employee_id})', multi=True):
-        pass
-    employee = cursor.fetchone()
+    cursor.callproc('GetUser', (employee_id,))
+    for tem in cursor.stored_results():
+        employee = tem.fetchone()
     if not employee:
         raise Http404
     connection.close()
@@ -265,9 +254,9 @@ def worktime_detail(request, employee_id, id):
     if request.method == 'GET':
         connection.reconnect()
         cursor = connection.cursor(dictionary=True)
-        for _ in cursor.execute(f'CALL RetrieveShift({id})',multi=True):
-            pass
-        worktime = cursor.fetchone()
+        cursor.callproc('RetrieveShift',(id,))
+        for tem in cursor.stored_results():
+           worktime = tem.fetchone()
         connection.close()
 
         return Response(worktime, status=status.HTTP_200_OK)
