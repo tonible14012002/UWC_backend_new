@@ -54,31 +54,6 @@ BEGIN
     END IF;
 END$$
 --
--- Crete end time - start time contraint
-DROP TRIGGER IF EXISTS end_time_trigger_insert$$
-CREATE TRIGGER end_time_trigger_insert
-	BEFORE INSERT
-    ON worktime FOR EACH ROW
-BEGIN
-	DECLARE endtime_mess varchar(128);
-    IF timestampdiff(SECOND, NEW.start, NEW.end) < 0 THEN
-		SET endtime_mess = concat('INSERT_Error: End time should after start time: ', cast(new.start as char), ' - ', cast(new.end as char));		
-		SIGNAL sqlstate '45000' SET message_text = endtime_mess;    
-    END IF;
-END$$
-
-DROP TRIGGER IF EXISTS end_time_trigger_update$$
-CREATE TRIGGER end_time_trigger_update
-	BEFORE UPDATE
-    ON worktime FOR EACH ROW
-BEGIN
-	DECLARE endtime_mess varchar(128);
-    IF timestampdiff(SECOND, NEW.start, NEW.end) < 0 THEN
-		SET endtime_mess = concat('INSERT_Error: End time should after start time: ', cast(new.start as char), ' - ', cast(new.end as char));		
-		SIGNAL sqlstate '45000' SET message_text = endtime_mess;    
-    END IF;
-END$$
---
 -- Create work radius constraint
 DROP TRIGGER IF EXISTS work_radius_trigger_insert$$
 CREATE TRIGGER work_radius_trigger_insert
@@ -144,6 +119,7 @@ BEGIN
 	RETURN max_cap;
 END$$
 --
+<<<<<<< HEAD
 -- function to get total load of a route
 DELIMITER $$
 DROP FUNCTION IF EXISTS `GetRouteLoad`$$
@@ -163,6 +139,8 @@ BEGIN
 	RETURN res;
 END $$
 --
+=======
+>>>>>>> f55335568f0a8175da3decfd681e34e8fd474c1b
 -- Create trigger to react if insert mcp overloading the truck on route.
 DROP TRIGGER IF EXISTS overloaded_mcp_route_insert$$
 CREATE TRIGGER overloaded_mcp_route_insert
@@ -209,10 +187,33 @@ BEGIN
 		SET employee_count = employee_count + 1
         WHERE back_officer.user_id = NEW.manager_id;
 END$$
+
+DROP TRIGGER IF EXISTS delete_count_employee$$
+CREATE TRIGGER delete_count_employee
+	AFTER DELETE
+	ON employee for each row
+BEGIN
+	UPDATE back_officer 
+		SET employee_count = employee_count - 1
+        WHERE back_officer.user_id = OLD.manager_id;
+END $$
+
+DROP TRIGGER IF EXISTS update_count_employee $$
+CREATE TRIGGER update_count_employee
+	AFTER UPDATE 
+    ON employee for each row
+BEGIN
+	UPDATE back_officer 
+		SET employee_count = employee_count + 1
+        WHERE back_officer.user_id = NEW.manager_id;
+	UPDATE back_officer 
+		SET employee_count = employee_count - 1
+        WHERE back_officer.user_id = OLD.manager_id;	
+END $$
 --
 -- Trigger count MCP and vehicle supervised by b_o
-DROP TRIGGER IF EXISTS count_mcp_trigger$$
-CREATE TRIGGER count_mcp_trigger
+DROP TRIGGER IF EXISTS count_asset_trigger$$
+CREATE TRIGGER count_asset_trigger
 	AFTER INSERT
     ON asset_supervisors FOR EACH ROW
 BEGIN
@@ -222,25 +223,66 @@ BEGIN
 			SET MCP_count = MCP_count + 1
             WHERE 
 				user_id = NEW.backofficer_id;
-	END IF;
-END$$
---
--- Trigger count vehicle supervised by b_o
-DROP TRIGGER IF EXISTS count_vehicle_trigger$$
-CREATE TRIGGER count_vehicle_trigger
-	AFTER INSERT
-    ON asset_supervisors FOR EACH ROW
-BEGIN
-	IF (SELECT is_vehicle FROM asset WHERE asset.id = NEW.asset_id) = 1 THEN
+    ELSE 
 		-- Update Vehicle
 		UPDATE back_officer
 			SET vehicle_count = vehicle_count + 1
             WHERE
 				user_id = NEW.backofficer_id;
 	END IF;
---     SET SQL_SAFE_UPDATES = state;
-END$$ 
-		
+END$$
+
+DROP TRIGGER IF EXISTS update_count_asset_trigger $$
+CREATE TRIGGER update_count_asset_trigger
+	AFTER UPDATE
+    ON asset_supervisors FOR EACH ROW
+BEGIN
+	IF (SELECT is_vehicle FROM asset WHERE asset.id = OLD.asset_id) = 0 THEN
+		-- Update MCP
+        BEGIN
+			UPDATE back_officer
+				SET MCP_count = MCP_count - 1
+				WHERE 
+					user_id = OLD.backofficer_id;
+			UPDATE back_officer
+				SET MCP_count = MCP_count + 1
+				WHERE 
+					user_id = NEW.backofficer_id;
+		END;
+	ELSE
+			-- Update Vehicle
+		BEGIN
+			UPDATE back_officer
+				SET vehicle_count = vehicle_count - 1
+				WHERE
+					user_id = OLD.backofficer_id;
+			UPDATE back_officer
+				SET vehicle_count = vehicle_count + 1
+				WHERE
+					user_id = NEW.backofficer_id;
+		END;
+	END IF;
+END$$	
+
+DROP TRIGGER IF EXISTS delete_count_asset_trigger $$
+CREATE TRIGGER delete_count_asset_trigger
+	AFTER DELETE
+    ON asset_supervisors FOR EACH ROW
+BEGIN
+	IF (SELECT is_vehicle FROM asset WHERE asset.id = OLD.asset_id) = 0 THEN
+		-- Update MCP
+		UPDATE back_officer
+			SET MCP_count = MCP_count - 1
+            WHERE 
+				user_id = OLD.backofficer_id;
+	ELSE
+			-- Update Vehicle
+		UPDATE back_officer
+			SET vehicle_count = vehicle_count - 1
+            WHERE
+				user_id = OLD.backofficer_id;
+	END IF;
+END$$	
 --
 -- Trigger count route supervised by b_o
 DROP TRIGGER IF EXISTS count_route_trigger$$
@@ -252,16 +294,58 @@ BEGIN
 		SET route_count = route_count + 1
         WHERE back_officer.user_id = NEW.manager_id;
 END$$
+
+DROP TRIGGER IF EXISTS delete_count_route_trigger$$
+CREATE TRIGGER delete_count_route_trigger
+	AFTER DELETE
+    ON route FOR EACH ROW
+BEGIN
+	UPDATE back_officer
+		SET route_count = route_count - 1
+        WHERE back_officer.user_id = OLD.manager_id;
+END$$
+
+DROP TRIGGER IF EXISTS update_count_route_trigger$$
+CREATE TRIGGER update_count_route_trigger
+	AFTER UPDATE
+    ON route FOR EACH ROW
+BEGIN
+	UPDATE back_officer
+		SET route_count = route_count - 1
+        WHERE back_officer.user_id = OLD.manager_id;
+	UPDATE back_officer
+		SET route_count = route_count + 1
+        WHERE back_officer.user_id = NEW.manager_id;
+END$$
 --
 -- Trigger count janitors work at MCP
 DROP TRIGGER IF EXISTS count_janitor_trigger$$
 CREATE TRIGGER count_janitor_trigger
-	AFTER INSERT
+	AFTER UPDATE
     ON janitor FOR EACH ROW
 BEGIN
-	UPDATE mcp
-		SET janitor_count = janitor_count + 1
-        WHERE mcp.asset_id = NEW.mcp_id;
+	IF (OLD.mcp_id IS NULL OR (OLD.mcp_id IS NOT NULL AND OLD.mcp_id <> NEW.mcp_id)) THEN
+		UPDATE mcp
+			SET janitor_count = janitor_count + 1
+			WHERE mcp.asset_id = NEW.mcp_id;
+	END IF;
+	IF (OLD.mcp_id IS NOT NULL AND OLD.mcp_id <> NEW.mcp_id) THEN
+		UPDATE mcp
+			SET janitor_count = janitor_count - 1
+			WHERE mcp.asset_id = OLD.mcp_id;
+    END IF;
+END$$
+
+DROP TRIGGER IF EXISTS delete_count_janitor_trigger$$
+CREATE TRIGGER delete_count_janitor_trigger
+	AFTER DELETE
+    ON janitor FOR EACH ROW
+BEGIN
+	IF (OLD.mcp_id IS NOT NULL) THEN
+		UPDATE mcp
+			SET janitor_count = janitor_count - 1
+			WHERE mcp.asset_id = OLD.mcp_id;
+    END IF;
 END$$
 --
 -- Query count 
@@ -317,7 +401,32 @@ BEGIN
     CLOSE curID;
 END $$
 --
--- Shift Insert trigger
+-- Crete end time - start time contraint
+DROP TRIGGER IF EXISTS end_time_trigger_insert$$
+CREATE TRIGGER end_time_trigger_insert
+	BEFORE INSERT
+    ON worktime FOR EACH ROW
+BEGIN
+	DECLARE endtime_mess varchar(128);
+    IF timestampdiff(SECOND, NEW.start, NEW.end) <= 0 THEN
+		SET endtime_mess = concat('INSERT_Error: End time should after start time: ', cast(new.start as char), ' - ', cast(new.end as char));		
+		SIGNAL sqlstate '45000' SET message_text = endtime_mess;    
+    END IF;
+END$$
+
+DROP TRIGGER IF EXISTS end_time_trigger_update$$
+CREATE TRIGGER end_time_trigger_update
+	BEFORE UPDATE
+    ON worktime FOR EACH ROW
+BEGIN
+	DECLARE endtime_mess varchar(128);
+    IF timestampdiff(SECOND, NEW.start, NEW.end) <= 0 THEN
+		SET endtime_mess = concat('INSERT_Error: End time should after start time: ', cast(new.start as char), ' - ', cast(new.end as char));		
+		SIGNAL sqlstate '45000' SET message_text = endtime_mess;    
+    END IF;
+END$$
+--
+-- Shift Inset trigger
 DROP TRIGGER IF EXISTS Shift_Insert $$
 CREATE TRIGGER Shift_Insert 
 	BEFORE INSERT 
