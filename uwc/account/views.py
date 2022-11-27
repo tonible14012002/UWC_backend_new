@@ -95,11 +95,10 @@ def employee(request):
         try:
             connection = mysql_connector.connect(**settings.DATABASE_CREDENTIALS)
             cursor = connection.cursor(dictionary=True)
-            cursor.execute(
-                f"""
+            for _ in cursor.execute(f"""
                 CALL GetEmployees({request.user['id']})
-                """
-            )
+                """, multi=True):
+                pass
             employees = cursor.fetchall()
             for employee in employees:
                 employee.pop('password')
@@ -138,7 +137,8 @@ def employee(request):
             connection.commit()
 
             cursor = connection.cursor(dictionary=True)
-            cursor.execute(f'CALL GetUser({result[0]})')
+            for _ in cursor.execute(f'CALL GetUser({result[0]})',multi=True):
+                pass
             employee = cursor.fetchall()
             connection.close()
 
@@ -154,7 +154,8 @@ def employee_detail(request, id):
     try:
         connection = connect_db()
         cursor = connection.cursor(dictionary=True)
-        cursor.execute(f'CALL GetUser({id})')
+        for _ in cursor.execute(f'CALL GetUser({id})',multi=True):
+            pass
         employee = cursor.fetchone()
         connection.close()
         if not employee:
@@ -164,11 +165,12 @@ def employee_detail(request, id):
         if request.method == 'GET':
             connection.reconnect()
             cursor = connection.cursor(dictionary=True)
-            cursor.execute(
+            for _ in cursor.execute(
                 f"""
                 CALL RetrieveSchedule({id});
                 """
-            )
+            , multi=True):
+                pass
             schedule = cursor.fetchall()
             employee['schedule'] = schedule
 
@@ -184,14 +186,16 @@ def employee_detail(request, id):
                                 'radius', 'mcp_id', 'route_id', 'is_working', 'role', 'salary')
                 connection.reconnect()
                 cursor = connection.cursor(dictionary=True)
-                cursor.execute(
+                for _ in cursor.execute(
                     'CALL UpdateEmployee(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', 
                     (id, *(update_data[field] for field in update_fields_order))
-                    )
+                    , multi= True):
+                    pass
                 connection.commit()
                 cursor.close()
                 cursor = connection.cursor(dictionary=True)
-                cursor.execute(f'CALL GetUser({id})')
+                for _ in cursor.execute(f'CALL GetUser({id})',multi=True):
+                    pass
                 employee_detail = cursor.fetchall()
                 connection.close()
                 return Response(employee_detail, status=status.HTTP_200_OK)
@@ -199,7 +203,8 @@ def employee_detail(request, id):
         # Delete Method
         connection.reconnect()
         cursor = connection.cursor()
-        cursor.execute(f'CALL DeleteEmployee({id})')
+        for _ in cursor.execute(f'CALL DeleteEmployee({id})',multi=True):
+            pass
         connection.commit()
         connection.close()
 
@@ -250,7 +255,8 @@ def schedule(request, employee_id):
 def worktime_detail(request, employee_id, id):
     connection = connect_db()
     cursor = connection.cursor(dictionary=True)
-    cursor.execute(f'CALL GetUser({employee_id})')
+    for _ in cursor.execute(f'CALL GetUser({employee_id})', multi=True):
+        pass
     employee = cursor.fetchone()
     if not employee:
         raise Http404
@@ -259,7 +265,8 @@ def worktime_detail(request, employee_id, id):
     if request.method == 'GET':
         connection.reconnect()
         cursor = connection.cursor(dictionary=True)
-        cursor.execute(f'CALL RetrieveShift({id})')
+        for _ in cursor.execute(f'CALL RetrieveShift({id})',multi=True):
+            pass
         worktime = cursor.fetchone()
         connection.close()
 

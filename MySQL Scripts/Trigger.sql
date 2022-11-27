@@ -145,8 +145,8 @@ BEGIN
 END$$
 --
 -- function to get total load of a route
-DELIMITER |
-DROP FUNCTION IF EXISTS `GetRouteLoad`|
+DELIMITER $$
+DROP FUNCTION IF EXISTS `GetRouteLoad`$$
 CREATE FUNCTION `GetRouteLoad`(
 	route_id BIGINT
 )
@@ -161,7 +161,7 @@ BEGIN
 		  contains_mcp.route_id = route.id AND
 		  contains_mcp.mcp_id = asset.id;
 	RETURN res;
-END |
+END $$
 --
 -- Create trigger to react if insert mcp overloading the truck on route.
 DROP TRIGGER IF EXISTS overloaded_mcp_route_insert$$

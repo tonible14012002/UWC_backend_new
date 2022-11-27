@@ -435,4 +435,36 @@ BEGIN
 		  `is_working` = 1;
 END |
 
--- procedure to acquire all  
+-- procedure to acquire all working janitors around an MCP
+DELIMITER |
+DROP PROCEDURE IF EXISTS `GetWorkingJanitorOfMCP`|
+CREATE PROCEDURE `GetWorkingJanitorOfMCP` (mcp_id BIGINT)
+BEGIN
+	SELECT *
+	FROM janitor, employee
+	WHERE user_id = employee_id AND
+		  `is_working` = 1 AND 
+		  janitor.mcp_id = mcp_id;
+END |
+
+-- procedure to acquire route layout of employee whose ID = k
+DELIMITER |
+DROP PROCEDURE IF EXISTS `GetRouteOnCollector`|
+CREATE PROCEDURE `GetRouteOnCollector` (col_id BIGINT)
+BEGIN
+	SELECT id
+	FROM contains_mcp, collector
+	WHERE contains_mcp.route_id = collector.route_id AND 
+		  collector.employee_id = col_id;
+END |
+
+-- procedure to acquire route layout of employee whose ID = k
+DELIMITER |
+DROP PROCEDURE IF EXISTS `LocateWorkingVehicle`|
+CREATE PROCEDURE `LocateWorkingVehicle` ()
+BEGIN
+	SELECT *
+	FROM employee em, vehicle ve
+	WHERE vehicle_id = ve.asset_id AND 
+		  em.is_working = 1;
+END |
