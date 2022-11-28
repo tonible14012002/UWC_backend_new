@@ -119,7 +119,6 @@ BEGIN
 	RETURN max_cap;
 END$$
 --
-<<<<<<< HEAD
 -- function to get total load of a route
 DELIMITER $$
 DROP FUNCTION IF EXISTS `GetRouteLoad`$$
@@ -139,8 +138,7 @@ BEGIN
 	RETURN res;
 END $$
 --
-=======
->>>>>>> f55335568f0a8175da3decfd681e34e8fd474c1b
+
 -- Create trigger to react if insert mcp overloading the truck on route.
 DROP TRIGGER IF EXISTS overloaded_mcp_route_insert$$
 CREATE TRIGGER overloaded_mcp_route_insert
