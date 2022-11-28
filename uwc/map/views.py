@@ -21,8 +21,7 @@ def RouteWithoutID(request):
             connection = connect_db()
             cursor = connection.cursor(dictionary=True)
             cursor.callproc('RetrieveRoutes', [request.user['id']])
-            routes = cursor.stored_results()
-            for temp in routes:
+            for temp in cursor.stored_results():
                 res = temp.fetchall()
             connection.close()
         except mysql_connector.Error as e:
@@ -78,7 +77,7 @@ def RouteWithID(request, id):
             distance = res[1]# get distance
 
             # get total load from route
-            load = cursor.callproc('GetRouteLoad', [id, None])
+            load = cursor.callproc('GetRouteLoad', [id,None])
 
             # get MCPs from route
             cursor = connection.cursor()
