@@ -15,7 +15,7 @@ DROP TABLE IF EXISTS asset_supervisors;
 DROP TABLE IF EXISTS asset;
 DROP TABLE IF EXISTS route;
 DROP TABLE IF EXISTS back_officer;
-DROP TABLE IF EXISTS user;
+DROP TABLE IF EXISTS `user`;
 --
 -- Create model Asset
 --
