@@ -90,6 +90,32 @@ CALL InsertMCPToRoute(7, @temp_id, 3);
 CALL InsertMCPToRoute(9, @temp_id, 4);
 SET @route2 = @temp_id;
 
+INSERT INTO route
+VALUES (NULL, DEFAULT, DEFAULT, NULL, @latest_bo_id);
+SET @temp_id = last_insert_id();
+CALL InsertMCPToRoute(1, @temp_id, 9);
+CALL InsertMCPToRoute(9, @temp_id, 3);
+CALL InsertMCPToRoute(2, @temp_id, 3);
+CALL InsertMCPToRoute(4, @temp_id, 1);
+
+INSERT INTO route
+VALUES (NULL, DEFAULT, DEFAULT, NULL, @latest_bo_id);
+SET @temp_id = last_insert_id();
+CALL InsertMCPToRoute(1, @temp_id, 3);
+CALL InsertMCPToRoute(3, @temp_id, 4);
+CALL InsertMCPToRoute(4, @temp_id, 2);
+CALL InsertMCPToRoute(2, @temp_id, 9);
+
+INSERT INTO route
+VALUES (NULL, DEFAULT, DEFAULT, NULL, @latest_bo_id);
+SET @temp_id = last_insert_id();
+CALL InsertMCPToRoute(2, @temp_id, 8);
+CALL InsertMCPToRoute(8, @temp_id, 3);
+CALL InsertMCPToRoute(4, @temp_id, 1);
+CALL InsertMCPToRoute(1, @temp_id, 2);
+
+
+
 -- Insert employee and let one back officer manages them
 SET @dummy = NULL;
 CALL InsertEmployee(@dummy,'trangbku123','trangthaomai212','Doan Thi Trang',@latest_bo_id,ROUND(RAND()),SYSDATE(),NULL,NULL,'female','0123567980','trangdoan@gmail.com',NULL,0,6000000);
