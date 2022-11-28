@@ -39,6 +39,30 @@ VALUES (@temp_id,DEFAULT,DEFAULT,DEFAULT,DEFAULT);
 INSERT INTO asset_supervisors SELECT id, @temp_id FROM asset; -- let this back officers supervise all assets
 
 INSERT INTO `user`
+VALUES (NULL,'Toinuoimeo24',sha2('eheheh123',0),'Pham Minh Chinh',1,0,SYSDATE(),NULL,NULL,'male',NULL,'minhchinh24@gmail.com',NULL);
+SET @temp_id = last_insert_id();
+INSERT INTO back_officer
+VALUES (@temp_id,DEFAULT,DEFAULT,DEFAULT,DEFAULT);
+INSERT INTO asset_supervisors SELECT id, @temp_id FROM asset; -- let this back officers supervise all assets
+
+
+INSERT INTO `user`
+VALUES (NULL,'phucnho11',sha2('nngp1102',0),'Nguyen Phuc Nho',1,0,SYSDATE(),NULL,NULL,'male',NULL,'phucnho11@gmail.com',NULL);
+SET @temp_id = last_insert_id();
+INSERT INTO back_officer
+VALUES (@temp_id,DEFAULT,DEFAULT,DEFAULT,DEFAULT);
+INSERT INTO asset_supervisors SELECT id, @temp_id FROM asset; -- let this back officers supervise all assets
+
+
+INSERT INTO `user`
+VALUES (NULL,'TienMinh13',sha2('sussycoder123',0),'Dang Tien Minh',1,0,SYSDATE(),NULL,NULL,'male',NULL,'tienminhsus123@gmail.com',NULL);
+SET @temp_id = last_insert_id();
+INSERT INTO back_officer
+VALUES (@temp_id,DEFAULT,DEFAULT,DEFAULT,DEFAULT);
+INSERT INTO asset_supervisors SELECT id, @temp_id FROM asset; -- let this back officers supervise all assets
+
+
+INSERT INTO `user`
 VALUES (NULL,'ChienHugo33',sha2('BukBuky320',0),'Ho Thanh Than',1,0,SYSDATE(),NULL,NULL,'male',NULL,'BukBuk321@gmail.com',NULL);
 SET @temp_id = last_insert_id();
 INSERT INTO back_officer
