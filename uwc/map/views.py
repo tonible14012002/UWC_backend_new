@@ -81,8 +81,9 @@ def RouteWithID(request, id):
 
             # get MCPs from route
             cursor = connection.cursor()
-            cursor.execute(f'CALL RetrieveMCPsFromRoute({id})')
-            mcps = cursor.fetchall()
+            cursor.callproc('RetrieveMCPsFromRoute',(id,))
+            for tem in cursor.stored_results():
+                mcps = tem.fetchall()
             mcps = [list(item) for item in mcps]
 
             # format result
@@ -164,7 +165,7 @@ def RealtimeRoute(request, id):
         connection = connect_db()
         cursor = connection.cursor(dictionary=True)
         # get MCPs from route
-        cursor.execute(f'CALL RetrieveMCPsFromRoute({id})')
+        cursor.callproc('RetrieveMCPsFromRoute',(id,))
         mcps = cursor.fetchall()
         # drop mcps with less than 15% load and update new load
         load = 0 # set new load
