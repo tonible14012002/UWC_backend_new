@@ -166,7 +166,8 @@ def RealtimeRoute(request, id):
         cursor = connection.cursor(dictionary=True)
         # get MCPs from route
         cursor.callproc('RetrieveMCPsFromRoute',(id,))
-        mcps = cursor.fetchall()
+        for tem in cursor.stored_results():
+            mcps = tem.fetchall()
         # drop mcps with less than 15% load and update new load
         load = 0 # set new load
         for i in range(len(mcps)-1, -1, -1):
