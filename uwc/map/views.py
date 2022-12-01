@@ -53,10 +53,10 @@ def RouteWithoutID(request):
             cursor.callproc('UpdateDistance', (route_id, distance))
             # set result format
             res = {
-                'route id': route_id,
+                'route_id': route_id,
                 'distance': distance,
                 'load': load[1],
-                'ordered MCPs': [route_data[index]['MCP_id'] for index in permutation]
+                'ordered_MCPs': [route_data[index]['MCP_id'] for index in permutation]
             }
             connection.commit()
             connection.close()
@@ -88,10 +88,10 @@ def RouteWithID(request, id):
 
             # format result
             res = {
-                'route id': id,
+                'route_id': id,
                 'distance': distance,
-                'total load': load[1],
-                'ordered MCPs': sum(mcps, [])
+                'total_load': load[1],
+                'ordered_MCPs': sum(mcps, [])
             }
             connection.close()
         except mysql_connector.Error as e:
@@ -123,10 +123,10 @@ def RouteWithID(request, id):
                 load = cursor.callproc('GetRouteLoad',(id,None))
                 # set result format
                 res = {
-                    'route id': id,
+                    'route_id': id,
                     'distance': distance,
-                    'total load': load[1],
-                    'ordered MCPs': [route_data[index]['MCP_id'] for index in permutation]
+                    'total_load': load[1],
+                    'ordered_MCPs': [route_data[index]['MCP_id'] for index in permutation]
                 }
                 connection.commit()
                 connection.close()
@@ -180,10 +180,10 @@ def RealtimeRoute(request, id):
         permutation, distance = FindOrder(temp_list)  # solve the tsp problem
         # set result format
         res = {
-            'route id': id,
+            'route_id': id,
             'distance': distance,
-            'total load': load,
-            'ordered MCPs': [mcps[index]['id'] for index in permutation]
+            'total_load': load,
+            'ordered_MCPs': [mcps[index]['id'] for index in permutation]
         }
         connection.close()
     except mysql_connector.Error as e:
