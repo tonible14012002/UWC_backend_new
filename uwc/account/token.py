@@ -31,7 +31,7 @@ def auth_required(func):
                 cursor = connection.cursor(dictionary=True)
                 cursor.callproc('GetUser',(user_id,))
                 for tem in cursor.stored_results():
-                    user = tem.fetchall()
+                    user = tem.fetchall()[0]
                 if not user['is_backofficer']:
                     return Response(
                         {"message": "This is not back officer account"}, 
