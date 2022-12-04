@@ -35,8 +35,8 @@ def RouteWithoutID(request):
             # create a new route, without MCPs
             connection = connect_db()
             cursor = connection.cursor()
-            res = cursor.callproc('InsertRoute', (request.user['id'], None))
-            route_id = res[0] # return route id
+            res = cursor.callproc('InsertRoute', (None, request.user['id']))
+            route_id = res[0]  # return route id
             # rearrange the MCPs then add them to the route
             temp_list = copy.deepcopy(route_data)
             permutation, distance = FindOrder(temp_list) # solve the tsp problem
