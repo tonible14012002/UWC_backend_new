@@ -23,6 +23,10 @@ def RouteWithoutID(request):
             cursor.callproc('RetrieveRoutes', [request.user['id']])
             for temp in cursor.stored_results():
                 res = temp.fetchall()
+            cursor = connection.cursor(dictionary=False)
+            for route in res:
+                load = cursor.callproc('GetRouteLoad',(route['id'],None))
+                route['load'] = load[1]
             connection.close()
         except mysql_connector.Error as e:
             return Response({"message": e.msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
