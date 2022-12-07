@@ -468,3 +468,15 @@ BEGIN
 	WHERE vehicle_id = ve.asset_id AND 
 		  em.is_working = 1;
 END |
+
+-- procedure to count the number of shifts employee with id k has to work daily
+DELIMITER |
+DROP PROCEDURE IF EXISTS `CountDailyShift`|
+CREATE PROCEDURE `CountDailyShift` (emp_id BIGINT)
+BEGIN
+	SELECT COUNT(*) AS Num_of_shifts, weekday
+	FROM worktime, employee
+	WHERE user_id = employee_id AND
+		  user_id = emp_id AND
+        GROUP BY weekday;
+END |
