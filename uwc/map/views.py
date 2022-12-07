@@ -94,7 +94,7 @@ def RouteWithID(request, id):
             res = {
                 'route_id': id,
                 'distance': distance,
-                'total_load': load[1],
+                'load': load[1],
                 'ordered_MCPs': sum(mcps, [])
             }
             connection.close()
@@ -129,7 +129,7 @@ def RouteWithID(request, id):
                 res = {
                     'route_id': id,
                     'distance': distance,
-                    'total_load': load[1],
+                    'load': load[1],
                     'ordered_MCPs': [route_data[index]['MCP_id'] for index in permutation]
                 }
                 connection.commit()

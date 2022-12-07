@@ -187,6 +187,8 @@ def employee_detail(request, id):
                     employee_detail = tem.fetchall()
                 connection.close()
                 return Response(employee_detail, status=status.HTTP_200_OK)
+            else:
+                print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         # Delete Method
         connection.reconnect()
