@@ -61,7 +61,9 @@ CREATE TRIGGER work_radius_trigger_insert
     ON janitor FOR EACH ROW
 BEGIN
     IF NEW.work_radius > 500.0 THEN
-		SET NEW.work_radius = 500.0;           
+		BEGIN
+			SET NEW.work_radius = 500.0;    
+		END;
     END IF;
 END$$
 
@@ -71,7 +73,9 @@ CREATE TRIGGER work_radius_trigger_update
     ON janitor FOR EACH ROW
 BEGIN
     IF NEW.work_radius > 500.0 THEN
-		SET NEW.work_radius = 500.0;           
+		BEGIN
+			SET NEW.work_radius = 500.0;    
+		END;
     END IF;
 END$$
 --
@@ -119,26 +123,6 @@ BEGIN
 	RETURN max_cap;
 END$$
 --
--- function to get total load of a route
-DELIMITER $$
-DROP FUNCTION IF EXISTS `GetRouteLoad`$$
-CREATE FUNCTION `GetRouteLoad`(
-	route_id BIGINT
-)
-RETURNS numeric(9,3)
-DETERMINISTIC
-READS SQL DATA
-BEGIN
-	DECLARE res NUMERIC(9,3);
-	SELECT SUM(asset.`load`) INTO res
-	FROM route, contains_mcp, asset
-	WHERE route.id = route_id AND
-		  contains_mcp.route_id = route.id AND
-		  contains_mcp.mcp_id = asset.id;
-	RETURN res;
-END $$
---
-
 -- Create trigger to react if insert mcp overloading the truck on route.
 DROP TRIGGER IF EXISTS overloaded_mcp_route_insert$$
 CREATE TRIGGER overloaded_mcp_route_insert
@@ -147,7 +131,7 @@ CREATE TRIGGER overloaded_mcp_route_insert
 BEGIN
 	DECLARE mcp_overload_mess VARCHAR(128);
 	IF ((GetRouteLoad(NEW.route_id) 
-		+ (SELECT capacity FROM asset WHERE asset.id = NEW.mcp_id)) 
+		+ (SELECT `load` FROM asset WHERE asset.id = NEW.mcp_id)) 
         > GetMaxCapacity(NEW.route_id)) THEN
 		SET mcp_overload_mess = CONCAT('Collector Truck will be overloaded on this route if MCP: ', cast(NEW.mcp_id as char),' is added into route: ', cast(NEW.route_id as char),'.');
         SIGNAL sqlstate '45000' SET message_text = mcp_overload_mess;	
